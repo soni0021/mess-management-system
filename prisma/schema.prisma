@@ -1,0 +1,168 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(STUDENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  student   Student?
+  admin     Admin?
+
+  @@map("users")
+}
+
+// Student model
+model Student {
+  id       String @id @default(cuid())
+  userId   String @unique
+  rollNo   String @unique
+  hostel   String
+  room     String
+  phone    String?
+
+  // Relations
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mealRecords  MealRecord[]
+  purchases    Purchase[]
+  mealPlans    MealPlan[]
+
+  @@map("students")
+}
+
+// Admin model
+model Admin {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admins")
+}
+
+// Meal model (breakfast, lunch, dinner)
+model Meal {
+  id          String   @id @default(cuid())
+  name        String
+  type        MealType
+  description String?
+  price       Float
+  date        DateTime
+  available   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  mealRecords MealRecord[]
+
+  @@map("meals")
+}
+
+// Meal record to track who ate what and when (PERMANENT RECORDS - NEVER DELETE)
+model MealRecord {
+  id        String   @id @default(cuid())
+  studentId String
+  mealId    String
+  eatenAt   DateTime @default(now())
+  marked    Boolean  @default(false)
+
+  // Relations
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  meal    Meal    @relation(fields: [mealId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, mealId])
+  @@map("meal_records")
+}
+
+// Meal plan for daily planning (TEMPORARY - CAN BE RESET)
+model MealPlan {
+  id        String   @id @default(cuid())
+  studentId String
+  mealType  MealType
+  date      DateTime
+  planned   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, mealType, date])
+  @@map("meal_plans")
+}
+
+// Grocery model for store items
+model Grocery {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  stock       Int      @default(0)
+  available   Boolean  @default(true)
+  category    String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  purchases Purchase[]
+
+  @@map("groceries")
+}
+
+// Purchase model to track grocery purchases
+model Purchase {
+  id        String   @id @default(cuid())
+  studentId String
+  groceryId String
+  quantity  Int
+  totalPrice Float
+  status    PurchaseStatus @default(PENDING)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  // Relations
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  grocery Grocery @relation(fields: [groceryId], references: [id], onDelete: Cascade)
+
+  @@map("purchases")
+}
+
+// Enums
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+}
+
+enum PurchaseStatus {
+  PENDING
+  CONFIRMED
+  DELIVERED
+  CANCELLED
+}
