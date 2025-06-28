@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
           }
         })
         return NextResponse.json({ success: true, message: 'Meal plan removed' })
-      } catch (error) {
+      } catch {
         // If record doesn't exist, that's okay
         return NextResponse.json({ success: true, message: 'Meal plan already removed' })
       }

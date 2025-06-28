@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '../../../../lib/prisma'
 import { getLocalToday, getLocalTomorrow } from '../../../../lib/dateUtils'
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // Get today's date
     const today = getLocalToday()

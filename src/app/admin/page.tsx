@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from '../../lib/session'
-import { Users, Utensils, Package, Plus, Trash2, Edit, Check, ShoppingCart } from 'lucide-react'
+import { Users, Utensils, Package, Plus, Trash2, Edit, ShoppingCart } from 'lucide-react'
 
 interface Student {
   id: string
@@ -44,6 +44,48 @@ interface TodayMeals {
   dinner: { studentId: string; marked: boolean }[]
 }
 
+
+
+interface StudentDailyData {
+  student: {
+    name: string
+    rollNo: string
+    hostel: string
+    room: string
+  }
+  month: string
+  monthlyTotals: {
+    totalMeals: number
+    totalMealSpent: number
+    totalPurchases: number
+    totalGrocerySpent: number
+    activeDays: number
+    totalSpent: number
+  }
+  dailyBreakdown: {
+    date: string
+    mealCount: number
+    purchaseCount: number
+    totalSpent: number
+    totalMealSpent: number
+    totalGrocerySpent: number
+    meals: {
+      id: string
+      name: string
+      type: string
+      price: number
+    }[]
+    purchases: {
+      id: string
+      quantity: number
+      totalPrice: number
+      unitPrice: number
+      groceryName: string
+    }[]
+  }[]
+  totalSpent: number
+}
+
 export default function AdminDashboard() {
   const { user, logout, loading: sessionLoading } = useSession()
   const router = useRouter()
@@ -65,7 +107,7 @@ export default function AdminDashboard() {
   
   // Daily tracking states
   const [selectedStudent, setSelectedStudent] = useState<string>('')
-  const [studentDailyData, setStudentDailyData] = useState<any>(null)
+  const [studentDailyData, setStudentDailyData] = useState<StudentDailyData | null>(null)
   const [loadingDailyData, setLoadingDailyData] = useState(false)
 
   useEffect(() => {
@@ -121,7 +163,7 @@ export default function AdminDashboard() {
         const errorData = await response.json()
         alert(errorData.error || 'Failed to update meal plan')
       }
-    } catch (error) {
+    } catch {
       alert('Error updating meal plan')
     }
   }
@@ -140,7 +182,7 @@ export default function AdminDashboard() {
       } else {
         alert('Failed to delete student')
       }
-    } catch (error) {
+    } catch {
       alert('Error deleting student')
     }
   }
@@ -159,7 +201,7 @@ export default function AdminDashboard() {
       } else {
         alert('Failed to delete grocery')
       }
-    } catch (error) {
+    } catch {
       alert('Error deleting grocery')
     }
   }
@@ -193,7 +235,7 @@ export default function AdminDashboard() {
         const errorData = await response.json()
         alert(errorData.error || 'Failed to reset meal plans')
       }
-    } catch (error) {
+    } catch {
       alert('Error resetting meal plans')
     }
   }
@@ -217,7 +259,7 @@ export default function AdminDashboard() {
         const errorData = await response.json()
         alert(errorData.error || 'Failed to confirm meals')
       }
-    } catch (error) {
+    } catch {
       alert('Error confirming meals')
     }
   }
@@ -240,7 +282,7 @@ export default function AdminDashboard() {
         const errorData = await response.json()
         alert(errorData.error || 'Failed to fetch student data')
       }
-    } catch (error) {
+    } catch {
       alert('Error fetching student data')
     } finally {
       setLoadingDailyData(false)
@@ -339,7 +381,7 @@ export default function AdminDashboard() {
                 <div className="px-6 py-4 border-b border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900">Daily Meal Planning</h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    ✅ Check meals to plan for today → 🟢 Click "Confirm Meals" to add to spending → 🔄 Use "Reset" to clear planning for tomorrow
+                    ✅ Check meals to plan for today → 🟢 Click &quot;Confirm Meals&quot; to add to spending → 🔄 Use &quot;Reset&quot; to clear planning for tomorrow
                   </p>
                   <div className="flex items-center space-x-4 mt-2 text-xs">
                     <span className="text-green-600">• Planning: Free (no spending)</span>
@@ -679,7 +721,7 @@ export default function AdminDashboard() {
                     <p className="text-gray-500 text-center py-8">No activity this month</p>
                   ) : (
                     <div className="space-y-6 max-h-96 overflow-y-auto">
-                      {studentDailyData.dailyBreakdown.map((day: any) => (
+                      {studentDailyData.dailyBreakdown.map((day) => (
                         <div key={day.date} className="border border-gray-200 rounded-lg p-4">
                           {/* Day Header */}
                           <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
@@ -706,7 +748,7 @@ export default function AdminDashboard() {
                                 <p className="text-gray-400 text-sm">No meals</p>
                               ) : (
                                 <div className="space-y-2">
-                                  {day.meals.map((meal: any) => (
+                                  {day.meals.map((meal) => (
                                     <div key={meal.id} className="flex justify-between items-center p-2 bg-green-50 rounded border border-green-200">
                                       <div>
                                         <p className="font-medium text-green-900">{meal.name}</p>
@@ -726,7 +768,7 @@ export default function AdminDashboard() {
                                 <p className="text-gray-400 text-sm">No purchases</p>
                               ) : (
                                 <div className="space-y-2">
-                                  {day.purchases.map((purchase: any) => (
+                                  {day.purchases.map((purchase) => (
                                     <div key={purchase.id} className="flex justify-between items-center p-2 bg-yellow-50 rounded border border-yellow-200">
                                       <div>
                                         <p className="font-medium text-yellow-900">{purchase.groceryName}</p>
@@ -820,7 +862,7 @@ function AddStudentModal({ isOpen, onClose, onSuccess }: { isOpen: boolean, onCl
         const errorData = await response.json()
         alert(errorData.error || 'Failed to add student')
       }
-    } catch (error) {
+    } catch {
       alert('Error adding student')
     }
   }
@@ -959,7 +1001,7 @@ function AddGroceryModal({ isOpen, onClose, onSuccess }: { isOpen: boolean, onCl
         const errorData = await response.json()
         alert(errorData.error || 'Failed to add grocery item')
       }
-    } catch (error) {
+    } catch {
       alert('Error adding grocery item')
     }
   }
@@ -1085,7 +1127,7 @@ function EditGroceryModal({ grocery, onClose, onSuccess }: { grocery: Grocery | 
         const errorData = await response.json()
         alert(errorData.error || 'Failed to update grocery item')
       }
-    } catch (error) {
+    } catch {
       alert('Error updating grocery item')
     }
   }
@@ -1213,7 +1255,7 @@ function AddPurchaseForm({ students, groceries, onSuccess }: {
         const errorData = await response.json()
         alert(errorData.error || 'Failed to add purchase')
       }
-    } catch (error) {
+    } catch {
       alert('Error adding purchase')
     } finally {
       setLoading(false)
